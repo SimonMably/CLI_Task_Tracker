@@ -3,7 +3,14 @@
         "id": 1,
         "description": "a task",
         "status": "todo",
-        "created_at": "18/11/2024 08:04 PM ",
-        "updated_at": "18/11/2024 08:04 PM "
+        "created_at": "20/11/2024 07:25 PM ",
+        "updated_at": "20/11/2024 07:25 PM "
+    },
+    {
+        "id": 2,
+        "description": "Complete cli task tracker",
+        "status": "todo",
+        "created_at": "07/12/2024 10:07 PM ",
+        "updated_at": "07/12/2024 10:07 PM "
     }
 ]
