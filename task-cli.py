@@ -20,14 +20,15 @@ def read_json(file):
 
 
 def add_task(args):
-    # TODO: Find a way to increment id number
-
-    tasks = "tasks.json"
+    tasks_file = "tasks.json"
     task_list = []
 
-    with open(tasks, "r", encoding="utf-8") as fp:
+    with open(tasks_file, "r", encoding="utf-8") as fp:
         task_list = json.load(fp)
-        last_id = task_list[-1]["id"]
+        if not len(task_list) == 0:
+            last_id = task_list[-1]["id"]
+        else:
+            last_id = 0
 
     new_id = last_id + 1
 
@@ -41,23 +42,34 @@ def add_task(args):
         }
     )
 
-    with open(tasks, mode="w", encoding="utf-8") as json_file:
-        json.dump(task_list, json_file, indent=4)
+    with open(tasks_file, mode="w", encoding="utf-8") as fp:
+        json.dump(task_list, fp, indent=4)
 
     print("Successfully appended to the JSON file.")
 
 
-def update_task(
-    id,
-    description=None,
-    status=None,
-    updated_at=datetime.datetime.now().strftime("%d/%m/%Y %I:%M %p %Z"),
-):
-    pass
+def update_task(args):
+    tasks_file = "tasks.json"
+
+    with open(tasks_file, "r", encoding="utf-8") as fp:
+        task_list = json.load(fp)
+
+    for task in task_list:
+        if str(task["id"]) == args.id:
+            task["description"] = args.new_description
+            task["updated_at"] = datetime.datetime.now().strftime(
+                "%d/%m/%Y %I:%M %p %Z"
+            )
+            break
+    else:
+        print(f"Task with id {args.id} not found")
+
+    with open(tasks_file, "w", encoding="utf-8") as fp:
+        json.dump(task_list, fp, indent=4)
 
 
-def delete_task(id):
-    pass
+def delete_task(args):
+    task_file = "tasks.json"
 
 
 def mark_task_as_by_status(id, status="todo"):
@@ -105,12 +117,18 @@ def main():
 
     # Update task command
     update_subparser = subparsers.add_parser("update", help="update an existing task.")
+    update_subparser.add_argument("id", help="The id of the task to update.")
+    update_subparser.add_argument("new_description")
+    # update_subparser.add_argument(
+    #     "new description", help="The new description of the task"
+    # )
     update_subparser.set_defaults(func=update_task)
 
     # Delete task command
     delete_subparser = subparsers.add_parser(
         "delete", help="delete a task by specifying a task id."
     )
+    delete_subparser.add_argument("id", help="the id of the task to delete")
     delete_subparser.set_defaults(func=delete_task)
 
     # Mark task command (mark in-progress, mark done, mark todo (mark todo can be set as default when adding the task))
