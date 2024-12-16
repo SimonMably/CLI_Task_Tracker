@@ -3,6 +3,8 @@ import datetime
 import json
 from pathlib import Path
 
+TASK_FILE = "tasks.json"
+
 
 def create_json_file_if_not_exist(file):
     filename = Path(file)
@@ -20,10 +22,9 @@ def read_json(file):
 
 
 def add_task(args):
-    tasks_file = "tasks.json"
     task_list = []
 
-    with open(tasks_file, "r", encoding="utf-8") as fp:
+    with open(TASK_FILE, "r", encoding="utf-8") as fp:
         task_list = json.load(fp)
         if not len(task_list) == 0:
             last_id = task_list[-1]["id"]
@@ -42,7 +43,7 @@ def add_task(args):
         }
     )
 
-    with open(tasks_file, mode="w", encoding="utf-8") as fp:
+    with open(TASK_FILE, mode="w", encoding="utf-8") as fp:
         json.dump(task_list, fp, indent=4)
 
     print("Successfully appended to the JSON file.")
@@ -67,16 +68,52 @@ def update_task(args):
     with open(tasks_file, "w", encoding="utf-8") as fp:
         json.dump(task_list, fp, indent=4)
 
+    print(f"Successfully updated task {args.id}")
+
 
 def delete_task(args):
-    task_file = "tasks.json"
+
+    with open(TASK_FILE, "r", encoding="utf-8") as fp:
+        task_list = json.load(fp)
+
+    for task in task_list:
+        if task["id"] == args.id:
+            task_list.remove(task)
+            break
+    else:
+        print(f"Task with id {args.id} not found")
+        return
+
+    with open(TASK_FILE, "w", encoding="utf-8") as fp:
+        json.dump(task_list, fp, indent=4)
+        print(f"Successfully deleted task {args.id}.")
 
 
-def mark_task_as_by_status(id, status="todo"):
-    # TODO: mark task as "todo"
-    # TODO: mark task as "in-progress"
-    # TODO: mark task as "done"
-    pass
+def mark_task_by_status(args):  # id, status="todo"):
+
+    with open(TASK_FILE, "r", encoding="utf-8") as fp:
+        task_list = json.load(fp)
+
+    for task in task_list:
+        if task["id"] == args.id:
+            if task["status"] == args.status:
+                print(f"This task has already been marked as {args.status}")
+                return
+
+            if args.status == "todo":
+                task["status"] = "todo"
+            elif args.status == "in-progress":
+                task["status"] = "in-progress"
+            elif args.status == "done":
+                task["status"] = "done"
+        else:
+            print(f"Task with id {args.id} not found.")
+            return
+
+    with open(TASK_FILE, "w", encoding="utf-8") as fp:
+        json.dump(task_list, fp, indent=4)
+
+    print(f"Successfully status of task {args.id} to {args.status}")
 
 
 # TODO: List all tasks that are not done (not actively in progress??).
@@ -128,7 +165,7 @@ def main():
     delete_subparser = subparsers.add_parser(
         "delete", help="delete a task by specifying a task id."
     )
-    delete_subparser.add_argument("id", help="the id of the task to delete")
+    delete_subparser.add_argument("id", help="the id of the task to delete", type=int)
     delete_subparser.set_defaults(func=delete_task)
 
     # Mark task command (mark in-progress, mark done, mark todo (mark todo can be set as default when adding the task))
@@ -136,9 +173,14 @@ def main():
         "mark",
         help="Mark a task as 'done' or 'in-progress'. All tasks are marked as 'todo' by default when created.",
     )
-    mark_subparser.add_argument("--in-progress", help="Mark a task as 'in-progress'.")
-    mark_subparser.add_argument("--done", help="Mark a task as 'done'.")
-    mark_subparser.set_defaults(func=mark_task_as_by_status)
+    mark_subparser.add_argument(
+        "status",
+        help="Mark a task as 'in-progress' or 'done'.",
+        type=str,
+        choices=["todo", "in-progress", "done"],
+    )
+    mark_subparser.add_argument("id", help="The id of the task", type=int)
+    mark_subparser.set_defaults(func=mark_task_by_status)
 
     # List task command (List: list all tasks, List done, List todo, List in-progress)
     list_subparser = subparsers.add_parser(

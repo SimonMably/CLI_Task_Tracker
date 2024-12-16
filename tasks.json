@@ -8,23 +8,37 @@
     },
     {
         "id": 2,
-        "description": "another updated task",
+        "description": "A task to test",
         "status": "todo",
-        "created_at": "09/12/2024 09:54 PM ",
-        "updated_at": "11/12/2024 07:24 PM "
+        "created_at": "15/12/2024 07:16 PM ",
+        "updated_at": "15/12/2024 07:16 PM "
     },
     {
         "id": 3,
-        "description": "no. 3 task",
-        "status": "todo",
-        "created_at": "09/12/2024 09:54 PM ",
-        "updated_at": "11/12/2024 07:26 PM "
+        "description": "Another task to test",
+        "status": "in-progress",
+        "created_at": "15/12/2024 07:17 PM ",
+        "updated_at": "15/12/2024 07:17 PM "
     },
     {
         "id": 4,
-        "description": "task updated again",
+        "description": "Yet another task to test",
         "status": "todo",
-        "created_at": "09/12/2024 10:05 PM ",
-        "updated_at": "11/12/2024 07:29 PM "
+        "created_at": "15/12/2024 07:18 PM ",
+        "updated_at": "15/12/2024 07:18 PM "
+    },
+    {
+        "id": 5,
+        "description": "A task for id 5 to test the status",
+        "status": "in-progress",
+        "created_at": "15/12/2024 07:51 PM ",
+        "updated_at": "15/12/2024 07:51 PM "
+    },
+    {
+        "id": 6,
+        "description": "testing\"",
+        "status": "todo",
+        "created_at": "16/12/2024 07:02 PM ",
+        "updated_at": "16/12/2024 07:02 PM "
     }
 ]
