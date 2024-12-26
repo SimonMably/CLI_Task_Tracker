@@ -6,7 +6,12 @@ from pathlib import Path
 TASK_FILE = "tasks.json"
 
 
-def create_json_file_if_not_exist(file):
+def create_json_file(file):
+    """Creates file, if it doen't exsist. Uses json.dump() to enter an empty list in file.
+
+    Arguments:
+        file -- Takes file path/filename as a string.
+    """
     filename = Path(file)
 
     if not filename.exists():
@@ -17,19 +22,33 @@ def create_json_file_if_not_exist(file):
 
 
 def read_json(file):
+    """Opens and reads a json file.
+
+    Arguments:
+        file -- file path / name as a string. Intended file is a json file.
+
+    Returns:
+        json list, either empty or contains json objects.
+    """
     with open(file, "r", encoding="utf-8") as fp:
         return json.load(fp)
 
 
 def add_task(args):
-    task_list = []
+    """Adds a new task to a json file.
 
-    with open(TASK_FILE, "r", encoding="utf-8") as fp:
-        task_list = json.load(fp)
-        if not len(task_list) == 0:
-            last_id = task_list[-1]["id"]
-        else:
-            last_id = 0
+    Example:
+        task-cli.py add "Finish task by today."
+
+    Arguments:
+        args -- arguments taken at the command line.
+    """
+    task_list = read_json(TASK_FILE)
+
+    if not len(task_list) == 0:
+        last_id = task_list[-1]["id"]
+    else:
+        last_id = 0
 
     new_id = last_id + 1
 
@@ -50,10 +69,15 @@ def add_task(args):
 
 
 def update_task(args):
-    tasks_file = "tasks.json"
+    """Updates a tasks description and updated_at keys. Task is specified via tasks id.
 
-    with open(tasks_file, "r", encoding="utf-8") as fp:
-        task_list = json.load(fp)
+    Examply:
+        task-cli.py update "Finish task by Thursday" 1
+
+    Arguments:
+        args -- arguments taken at the command line.
+    """
+    task_list = read_json(TASK_FILE)
 
     for task in task_list:
         if str(task["id"]) == args.id:
@@ -65,16 +89,23 @@ def update_task(args):
     else:
         print(f"Task with id {args.id} not found")
 
-    with open(tasks_file, "w", encoding="utf-8") as fp:
+    with open(TASK_FILE, "w", encoding="utf-8") as fp:
         json.dump(task_list, fp, indent=4)
 
     print(f"Successfully updated task {args.id}")
 
 
 def delete_task(args):
+    """Delete a task, specified by the tasks id.
 
-    with open(TASK_FILE, "r", encoding="utf-8") as fp:
-        task_list = json.load(fp)
+    Example:
+        task-cli.py delete 1
+
+    Arguments:
+        args -- arguments taken at the command line.
+    """
+
+    task_list = read_json(TASK_FILE)
 
     for task in task_list:
         if task["id"] == args.id:
@@ -89,49 +120,71 @@ def delete_task(args):
         print(f"Successfully deleted task {args.id}.")
 
 
-def mark_task_by_status(args):  # id, status="todo"):
+def mark_task_by_status(args):
+    """Update the status of an existing task. Available options:
+        - todo
+        - in-progress
+        - done
 
-    with open(TASK_FILE, "r", encoding="utf-8") as fp:
-        task_list = json.load(fp)
+    Example:
+        task-cli.py mark in-progress 1
+
+    Arguments:
+        args -- arguments taken at the command line.
+    """
+    task_list = read_json(TASK_FILE)
 
     for task in task_list:
         if task["id"] == args.id:
-            if task["status"] == args.status:
-                print(f"This task has already been marked as {args.status}")
+            if task["status"] == args.mark_status:
+                print(f"This task has already been marked as {args.mark_status}")
                 return
 
-            if args.status == "todo":
+            if args.mark_status == "todo":
                 task["status"] = "todo"
-            elif args.status == "in-progress":
+            elif args.mark_status == "in-progress":
                 task["status"] = "in-progress"
-            elif args.status == "done":
+            elif args.mark_status == "done":
                 task["status"] = "done"
-        else:
-            print(f"Task with id {args.id} not found.")
-            return
+            break
+    else:
+        print(f"Task with id {args.id} not found.")
+        return
 
     with open(TASK_FILE, "w", encoding="utf-8") as fp:
         json.dump(task_list, fp, indent=4)
 
-    print(f"Successfully status of task {args.id} to {args.status}")
+    print(f"Successfully status of task {args.id} to {args.mark_status}")
 
 
-# TODO: List all tasks that are not done (not actively in progress??).
-def list_tasks_by_status(status=None):
-    # TODO: list all tasks
-    if status is None:
-        with open("tasks.json", mode="r", encoding="utf-8") as f:
-            for line in f:
-                print(line)
+def list_tasks_by_status(args):
+    """Lists all tasks or lists tasks by specific status. Available status': todo, in-progress, done.
 
-    # TODO: list tasks todo
-    elif status == "todo":
-        with open("tasks.json", mode="r", encoding="utf-8") as f:
-            for task in f:
-                pass
+    Examples:
+        List all tasks: task-cli.py list
+        List tasks by status: task-cli.py list in-progress
 
-    # TODO: list tasks that are in progress
-    # TODO: list tasks that are done
+    Arguments:
+        args -- arguments to pass in on command line.
+    """
+    task_list = read_json(TASK_FILE)
+
+    if not task_list:
+        print("There are no tasks to list.")
+        return
+
+    if len([task for task in task_list if task["status"] == args.list_status]) == 0:
+        if args.list_status == "all":
+            pass
+        else:
+            print(f"There are no tasks with the status of {args.list_status}")
+            return
+
+    for task in task_list:
+        if args.list_status == "all":
+            print(f"Task ID {task['id']}: {task['description']} - {task['status']}")
+        elif args.list_status == task["status"]:
+            print(f"Task ID {task['id']}: {task['description']} - {task['status']}")
 
 
 def main():
@@ -139,7 +192,6 @@ def main():
         prog="tasl-cli",
         description="CLI Task Tracker",
         epilog="Thanks for using %(prog)s!",
-        # argument_default=argparse.SUPPRESS,
     )
     subparsers = parser.add_subparsers(
         title="commands",
@@ -156,9 +208,6 @@ def main():
     update_subparser = subparsers.add_parser("update", help="update an existing task.")
     update_subparser.add_argument("id", help="The id of the task to update.")
     update_subparser.add_argument("new_description")
-    # update_subparser.add_argument(
-    #     "new description", help="The new description of the task"
-    # )
     update_subparser.set_defaults(func=update_task)
 
     # Delete task command
@@ -168,29 +217,30 @@ def main():
     delete_subparser.add_argument("id", help="the id of the task to delete", type=int)
     delete_subparser.set_defaults(func=delete_task)
 
-    # Mark task command (mark in-progress, mark done, mark todo (mark todo can be set as default when adding the task))
     mark_subparser = subparsers.add_parser(
         "mark",
-        help="Mark a task as 'done' or 'in-progress'. All tasks are marked as 'todo' by default when created.",
+        help="Mark a task as 'todo', 'done' or 'in-progress'. All tasks are marked as 'todo' by default when created.",
     )
     mark_subparser.add_argument(
-        "status",
-        help="Mark a task as 'in-progress' or 'done'.",
+        "mark_status",
+        help="Mark a task as 'todo' or 'in-progress' or 'done'.",
         type=str,
         choices=["todo", "in-progress", "done"],
     )
     mark_subparser.add_argument("id", help="The id of the task", type=int)
     mark_subparser.set_defaults(func=mark_task_by_status)
 
-    # List task command (List: list all tasks, List done, List todo, List in-progress)
+    # List task command
     list_subparser = subparsers.add_parser(
         "list",
-        help="list: list all tasks. Or use optional args; --done: list all tasks marked as done, --in-progress: list all tasks marked as in-progress, --todo: list all taskes marked as todo.",
+        help="list: list all tasks. Or use optional args; done: list all tasks marked as done, in-progress: list all tasks marked as in-progress, todo: list all taskes marked as todo.",
     )
-    list_subparser.add_argument("--done", help="List all tasks marked as 'done'.")
-    list_subparser.add_argument("--todo", help="List all tasks marked as 'todo'.")
     list_subparser.add_argument(
-        "--in-progress", help="List all tasks marked as 'in-progress'."
+        "list_status",
+        help="The status by which to list tasks. Options include all, todo, in-progress, and done. If you want to list all tasks, you have the option to use the all argument or leave blank as the all argument is set as the default.",
+        nargs="?",
+        choices=["all", "todo", "in-progress", "done"],
+        default="all",
     )
     list_subparser.set_defaults(func=list_tasks_by_status)
 
@@ -199,5 +249,5 @@ def main():
 
 
 if __name__ == "__main__":
-    create_json_file_if_not_exist("tasks.json")
+    create_json_file("tasks.json")
     main()
